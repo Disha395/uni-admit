@@ -9,6 +9,8 @@ import java.util.TimeZone;
 public class AuthServiceApplication {
 
 	public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
+        System.out.println(TimeZone.getDefault().getID());
 		SpringApplication.run(AuthServiceApplication.class, args);
 	}
 

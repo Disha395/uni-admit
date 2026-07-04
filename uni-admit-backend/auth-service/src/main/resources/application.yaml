@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: auth-postgres
+    name: auth-service
 
   datasource:
     url: jdbc:postgresql://localhost:5433/auth_db
@@ -36,6 +36,12 @@ management:
     web:
       exposure:
         include: health,info
+
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
 
 # ── JWT config — custom properties read via @ConfigurationProperties or @Value ──
 jwt:

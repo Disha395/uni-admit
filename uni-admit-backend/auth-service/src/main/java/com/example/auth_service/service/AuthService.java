@@ -89,6 +89,9 @@ public class AuthService {
         return buildAuthResponse(accessToken, refreshToken, user);
     }
 
+    public boolean userExists(String userId) {
+        return userRepository.existsById(UUID.fromString(userId));
+    }
     // ── Refresh ──────────────────────────────────────────────────────────────
     @Transactional
     public AuthResponse refresh(RefreshRequest request) {

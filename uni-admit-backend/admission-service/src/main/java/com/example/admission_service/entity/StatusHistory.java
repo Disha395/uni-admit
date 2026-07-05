@@ -23,7 +23,7 @@ public class StatusHistory {
     private UUID applicationId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = true)  // null means initial status — no previous state
     private Application.ApplicationStatus fromStatus;
 
     @Enumerated(EnumType.STRING)

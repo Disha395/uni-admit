@@ -47,8 +47,13 @@ public class AdmissionController {
     public ResponseEntity<ApplicationResponse> updateStatus(
             @PathVariable String applicationId,
             @RequestHeader("X-User-Id") String adminId,
+            @RequestHeader("X-User-Roles") String roles,
             @Valid @RequestBody StatusUpdateRequest request) {
+
+        if (!roles.contains("ROLE_ADMIN")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         return ResponseEntity.ok(admissionService.updateStatus(applicationId, request, adminId));
     }
-}
+    }
 

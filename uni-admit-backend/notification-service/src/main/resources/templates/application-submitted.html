@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Application Submitted</title></head>
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+<h2 style="color: #1E3A5F;">Application Submitted Successfully</h2>
+<p>Your application has been received and is now being processed.</p>
+<table style="border-collapse: collapse; width: 100%;">
+    <tr>
+        <td style="padding: 8px; font-weight: bold;">Application ID:</td>
+        <td style="padding: 8px;" th:text="${applicationId}"></td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; font-weight: bold;">Course:</td>
+        <td style="padding: 8px;" th:text="${courseName}"></td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; font-weight: bold;">Status:</td>
+        <td style="padding: 8px;" th:text="${status}"></td>
+    </tr>
+</table>
+<p style="margin-top: 20px;">We will notify you of any updates to your application.</p>
+<p style="color: #666;">— UniAdmit Team</p>
+</body>
+</html>
+

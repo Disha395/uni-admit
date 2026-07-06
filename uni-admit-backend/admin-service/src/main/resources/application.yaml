@@ -1,3 +1,62 @@
+server:
+  port: 8087
+
 spring:
   application:
     name: admin-service
+
+  # No database — Admin Service is a pure aggregator
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8070/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+
+  instance:
+    prefer-ip-address: true
+
+
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+spring.cloud.openfeign.circuitbreaker.enabled: true
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      admissionService:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      profileService:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  retry:
+    instances:
+      admissionService:
+        max-attempts: 3
+        wait-duration: 500ms
+      profileService:
+        max-attempts: 3
+        wait-duration: 500ms
+
+logging:
+  level:
+    com.example.adminservice: DEBUG

@@ -10,6 +10,15 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+      circuitbreaker:
+        enabled: true
 
   jpa:
     hibernate:

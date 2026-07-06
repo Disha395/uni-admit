@@ -55,5 +55,11 @@ public class AdmissionController {
         }
         return ResponseEntity.ok(admissionService.updateStatus(applicationId, request, adminId));
     }
+    // Get all applications — admin only, called by Admin Service via Feign
+    @GetMapping
+    public ResponseEntity<List<ApplicationResponse>> getAllApplications() {
+        return ResponseEntity.ok(admissionService.getAllApplications());
     }
+
+}
 

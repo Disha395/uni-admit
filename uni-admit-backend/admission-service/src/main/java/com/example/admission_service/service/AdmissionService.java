@@ -76,6 +76,13 @@ public class AdmissionService {
         throw new IllegalStateException(
                 "System is under high load. Please try again in a moment.");
     }
+    public List<ApplicationResponse> getAllApplications() {
+        return applicationRepository.findAll()
+                .stream()
+                .map(ApplicationResponse::from)
+                .collect(Collectors.toList());
+    }
+
 
     // ── Get application by ID ─────────────────────────────────────────────────
     public ApplicationResponse getApplication(String applicationId) {

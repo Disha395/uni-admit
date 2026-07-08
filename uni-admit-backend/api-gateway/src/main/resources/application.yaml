@@ -1,3 +1,115 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: api-gateway
+
+  cloud:
+    gateway:
+      # ── Routes ────────────────────────────────────────────────────────────────
+      routes:
+
+        # Auth Service — public, no JWT needed
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+#          filters:
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: 20
+#                redis-rate-limiter.burstCapacity: 40
+#                key-resolver: "#{@remoteAddrKeyResolver}"
+
+        # Student Profile Service
+        - id: profile-service
+          uri: lb://PROFILE-SERVICE
+          predicates:
+            - Path=/profile/**
+
+        # Admission Service
+        - id: admission-service
+          uri: lb://ADMISSION-SERVICE
+          predicates:
+            - Path=/application/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: admissionCB
+                fallbackUri: forward:/fallback/admission
+
+        # Document Service
+        - id: document-service
+          uri: lb://DOCUMENT-SERVICE
+          predicates:
+            - Path=/docs/**
+
+        # Notification Service — no HTTP routes, RabbitMQ only
+        # (no route needed)
+
+        # Admin Service
+        - id: admin-service
+          uri: lb://ADMIN-SERVICE
+          predicates:
+            - Path=/admin/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: adminCB
+                fallbackUri: forward:/fallback/admin
+
+      # Global CORS config
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"   # Next.js frontend
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8070/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+# JWT secret — must match Auth Service exactly
+jwt:
+  secret: "mySecretKeyForJWTTokenGenerationUniAdmit2025ProjectDisha"
+
+# Resilience4j circuit breakers
+resilience4j:
+  circuitbreaker:
+    instances:
+      admissionCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+      adminCB:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+
+logging:
+  level:
+    com.example.apigateway: DEBUG
+    org.springframework.cloud.gateway: INFO

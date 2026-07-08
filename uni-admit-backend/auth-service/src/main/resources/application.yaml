@@ -45,7 +45,7 @@ management:
 
 # ── JWT config — custom properties read via @ConfigurationProperties or @Value ──
 jwt:
-  secret: "hougo08ygouonpju0y0hhvucvhbbbh78yygbhbhbhb"
+  secret: "mySecretKeyForJWTTokenGenerationUniAdmit2025ProjectDisha"
   access-token-expiration-ms: 900000        # 15 minutes
   refresh-token-expiration-ms: 604800000    # 7 days
 

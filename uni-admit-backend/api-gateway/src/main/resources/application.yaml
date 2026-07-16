@@ -33,11 +33,6 @@ spring:
           uri: lb://ADMISSION-SERVICE
           predicates:
             - Path=/application/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: admissionCB
-                fallbackUri: forward:/fallback/admission
 
         # Document Service
         - id: document-service
@@ -53,11 +48,11 @@ spring:
           uri: lb://ADMIN-SERVICE
           predicates:
             - Path=/admin/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: adminCB
-                fallbackUri: forward:/fallback/admin
+#          filters:
+#            - name: CircuitBreaker
+#              args:
+#                name: adminCB
+#                fallbackUri: forward:/fallback/admin
 
       # Global CORS config
       globalcors:

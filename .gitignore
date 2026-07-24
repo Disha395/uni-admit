@@ -19,8 +19,7 @@ target/
 *.iml
 *.ipr
 
-payment-service/src/main/resources/application.yaml
-### NetBeans ###
+uni-admit-backend/payment-service/src/main/resources/application.yaml### NetBeans ###
 /nbproject/private/
 /nbbuild/
 /dist/

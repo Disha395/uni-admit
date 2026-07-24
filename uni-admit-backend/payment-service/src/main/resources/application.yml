@@ -1,0 +1,64 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: payment-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5437/payment-postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8070/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Stripe config — replace with your actual keys from Stripe Dashboard
+stripe:
+  secret-key: sk_test_51TvuOVHcYUgaGheJkh3sjUMdET2x7bzgOT0dRe17hJUj6CqAmhjLDkZVLFRcUicj1Keo8gTvLCjiTgibeOiK9wn500d9GHdymh
+  publishable-key: pk_test_51TvuOVHcYUgaGheJB7vFKZGAxzegrmbw6txZTLdPRszYfibNoV0cEBIdC0f4sdKa2QYrhQwdODKh4SJf9T78gRU900DWpOgJwF
+  webhook-secret:  whsec_95bb2852687d3aae6e88dbc896fdb4e4ffeb4ef1197ece55cbade9379b61a83a   # get this from Stripe CLI
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      stripeApi:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  retry:
+    instances:
+      stripeApi:
+        max-attempts: 3
+        wait-duration: 1000ms
+
+logging:
+  level:
+    com.example.paymentservice: DEBUG

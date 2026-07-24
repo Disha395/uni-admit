@@ -41,10 +41,6 @@ management:
         include: health,info
 
 # Stripe config — replace with your actual keys from Stripe Dashboard
-stripe:
-  secret-key: sk_test_51TvuOVHcYUgaGheJkh3sjUMdET2x7bzgOT0dRe17hJUj6CqAmhjLDkZVLFRcUicj1Keo8gTvLCjiTgibeOiK9wn500d9GHdymh
-  publishable-key: pk_test_51TvuOVHcYUgaGheJB7vFKZGAxzegrmbw6txZTLdPRszYfibNoV0cEBIdC0f4sdKa2QYrhQwdODKh4SJf9T78gRU900DWpOgJwF
-  webhook-secret:  whsec_95bb2852687d3aae6e88dbc896fdb4e4ffeb4ef1197ece55cbade9379b61a83a   # get this from Stripe CLI
 
 resilience4j:
   circuitbreaker:

@@ -53,6 +53,10 @@ spring:
 #              args:
 #                name: adminCB
 #                fallbackUri: forward:/fallback/admin
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/payment/**
 
       # Global CORS config
       globalcors:

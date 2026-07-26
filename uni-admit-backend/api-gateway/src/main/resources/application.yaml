@@ -86,6 +86,10 @@ management:
     web:
       exposure:
         include: health,info,gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 # JWT secret — must match Auth Service exactly
 jwt:

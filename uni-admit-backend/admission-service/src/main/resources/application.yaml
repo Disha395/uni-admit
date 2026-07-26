@@ -47,7 +47,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 resilience4j:
   circuitbreaker:

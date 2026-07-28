@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.net.URI;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.example.documentservice.controller")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -26,7 +26,7 @@ public class SecurityConfig {
                         // All /auth/** endpoints are public — no token needed to register/login
                         .requestMatchers("/auth/**").permitAll()
                         // Actuator health endpoint — public for Eureka health checks
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         // Everything else requires authentication
                         .anyRequest().authenticated()
                 );

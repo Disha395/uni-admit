@@ -33,7 +33,11 @@ spring:
           uri: lb://ADMISSION-SERVICE
           predicates:
             - Path=/application/**
-
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: admissionCB
+                fallbackUri: forward:/fallback/admission
         # Document Service
         - id: document-service
           uri: lb://DOCUMENT-SERVICE

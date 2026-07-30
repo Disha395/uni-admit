@@ -21,6 +21,10 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+		</dependency>
 		<!-- Spring Cloud Gateway — reactive WebFlux based -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>

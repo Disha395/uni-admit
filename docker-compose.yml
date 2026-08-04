@@ -1,0 +1,156 @@
+version: "3.9"
+
+services:
+
+  # ============================
+  # Auth Database
+  # ============================
+  auth-postgres:
+    image: postgres:17
+    container_name: auth-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+
+  # ============================
+  # Profile Database
+  # ============================
+  profile-postgres:
+    image: postgres:17
+    container_name: profile-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: profile_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - profile_data:/var/lib/postgresql/data
+
+  # ============================
+  # Admission Database
+  # ============================
+  admission-postgres:
+    image: postgres:17
+    container_name: admission-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: admission_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - admission_data:/var/lib/postgresql/data
+
+  # ============================
+  # Document Database
+  # ============================
+  document-postgres:
+    image: postgres:17
+    container_name: document-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: document_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - document_data:/var/lib/postgresql/data
+
+  # ============================
+  # Payment Database
+  # ============================
+  payment-postgres:
+    image: postgres:17
+    container_name: payment-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment_data:/var/lib/postgresql/data
+
+  # ============================
+  # RabbitMQ
+  # ============================
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  # ============================
+  # MinIO
+  # ============================
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  # ============================
+  # Prometheus
+  # ============================
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  # ============================
+  # Grafana
+  # ============================
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+
+volumes:
+  auth_data:
+  profile_data:
+  admission_data:
+  document_data:
+  payment_data:
+  rabbitmq_data:
+  minio_data:
+  grafana_data:

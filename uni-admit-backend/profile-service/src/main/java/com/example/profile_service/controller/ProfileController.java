@@ -1,6 +1,6 @@
 package com.example.profile_service.controller;
 
-import com.example.profileservice.dto.ProfileRequest;
+import com.example.profile_service.dto.ProfileRequest;
 import com.example.profile_service.dto.ProfileResponse;
 import com.example.profile_service.service.ProfileService;
 import jakarta.validation.Valid;

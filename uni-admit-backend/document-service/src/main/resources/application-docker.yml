@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://document-postgres:5432/document_db
+    username: postgres
+    password: postgres
+
+minio:
+  endpoint: http://minio:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  default-bucket: uniadmit-documents
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8070/eureka/

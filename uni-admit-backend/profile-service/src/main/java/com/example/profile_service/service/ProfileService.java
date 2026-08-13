@@ -1,7 +1,7 @@
 package com.example.profile_service.service;
 
 import com.example.profile_service.client.AuthClient;
-import com.example.profileservice.dto.ProfileRequest;
+import com.example.profile_service.dto.ProfileRequest;
 import com.example.profile_service.dto.ProfileResponse;
 import com.example.profile_service.entity.StudentProfile;
 import com.example.profile_service.repository.StudentProfileRepository;

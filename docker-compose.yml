@@ -1,342 +1,359 @@
-version: "3.9"
+version: '3.8'
 
+# ── Networks ───────────────────────────────────────────────────────────────────
 networks:
   uniadmit-network:
     driver: bridge
 
-# -------------------------------------------------------
-# VOLUMES
-# -------------------------------------------------------
-
+# ── Volumes (data persistence) ─────────────────────────────────────────────────
 volumes:
-  auth-data:
-  profile-data:
-  admission-data:
-  document-data:
-  payment-data:
-  admin-data:
-
-  rabbitmq-data:
+  auth-postgres-data:
+  profile-postgres-data:
+  admission-postgres-data:
+  document-postgres-data:
   minio-data:
+  rabbitmq-data:
+  prometheus-data:
   grafana-data:
-
-# -------------------------------------------------------
-# SERVICES
-# -------------------------------------------------------
 
 services:
 
-  ##########################################################
-  # POSTGRES DATABASES
-  ##########################################################
+  # ════════════════════════════════════════════════════════════════════════════
+  # INFRASTRUCTURE
+  # ════════════════════════════════════════════════════════════════════════════
 
+  # ── Auth Database ────────────────────────────────────────────────────────────
   auth-postgres:
-    image: postgres:17
+    image: postgres:16-alpine
     container_name: auth-postgres
-    restart: always
     environment:
       POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
     volumes:
-      - auth-data:/var/lib/postgresql/data
+      - auth-postgres-data:/var/lib/postgresql/data
     networks:
       - uniadmit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ── Profile Database ─────────────────────────────────────────────────────────
   profile-postgres:
-    image: postgres:17
+    image: postgres:16-alpine
     container_name: profile-postgres
-    restart: always
     environment:
       POSTGRES_DB: profile_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
     volumes:
-      - profile-data:/var/lib/postgresql/data
+      - profile-postgres-data:/var/lib/postgresql/data
     networks:
       - uniadmit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d profile_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ── Admission Database ───────────────────────────────────────────────────────
   admission-postgres:
-    image: postgres:17
+    image: postgres:16-alpine
     container_name: admission-postgres
-    restart: always
     environment:
       POSTGRES_DB: admission_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5435:5432"
     volumes:
-      - admission-data:/var/lib/postgresql/data
+      - admission-postgres-data:/var/lib/postgresql/data
     networks:
       - uniadmit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d admission_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ── Document Database ────────────────────────────────────────────────────────
   document-postgres:
-    image: postgres:17
+    image: postgres:16-alpine
     container_name: document-postgres
-    restart: always
     environment:
       POSTGRES_DB: document_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5436:5432"
     volumes:
-      - document-data:/var/lib/postgresql/data
+      - document-postgres-data:/var/lib/postgresql/data
     networks:
       - uniadmit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d document_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  payment-postgres:
-    image: postgres:17
-    container_name: payment-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: payment_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5437:5432"
-    volumes:
-      - payment-data:/var/lib/postgresql/data
-    networks:
-      - uniadmit-network
-
-  admin-postgres:
-    image: postgres:17
-    container_name: admin-postgres
-    restart: always
-    environment:
-      POSTGRES_DB: admin_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5438:5432"
-    volumes:
-      - admin-data:/var/lib/postgresql/data
-    networks:
-      - uniadmit-network
-
-  ##########################################################
-  # RABBITMQ
-  ##########################################################
-
+  # ── RabbitMQ ─────────────────────────────────────────────────────────────────
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3-management-alpine
     container_name: rabbitmq
-    restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - uniadmit-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
-  ##########################################################
-  # MINIO
-  ##########################################################
-
+  # ── MinIO ────────────────────────────────────────────────────────────────────
   minio:
     image: minio/minio
     container_name: minio
     command: server /data --console-address ":9001"
-    restart: always
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
     ports:
       - "9000:9000"
       - "9001:9001"
+    networks:
+      - uniadmit-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── Prometheus ───────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
     volumes:
-      - minio-data:/data
-    networks:
-      - uniadmit-network
-
-  ##########################################################
-  # CONFIG SERVER
-  ##########################################################
-
-  config-server:
-    build: ./infrastructure/config-server
-    container_name: config-server
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
     ports:
-      - "8888:8888"
-    restart: always
+      - "9090:9090"
     networks:
       - uniadmit-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
 
-  ##########################################################
-  # EUREKA
-  ##########################################################
+  # ── Grafana ──────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - uniadmit-network
+    depends_on:
+      - prometheus
 
+  # ════════════════════════════════════════════════════════════════════════════
+  # SPRING CLOUD CORE
+  # ════════════════════════════════════════════════════════════════════════════
+
+  # ── Eureka Server ────────────────────────────────────────────────────────────
   eureka-server:
-    build: ./infrastructure/eureka-server
+    build:
+      context: ./uni-admit-backend/eurekaserver
+      dockerfile: Dockerfile
     container_name: eureka-server
-    depends_on:
-      - config-server
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
-      - "8761:8761"
-    restart: always
+      - "8070:8070"
     networks:
       - uniadmit-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8070/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
 
-  ##########################################################
-  # API GATEWAY
-  ##########################################################
+  # ════════════════════════════════════════════════════════════════════════════
+  # MICROSERVICES
+  # ════════════════════════════════════════════════════════════════════════════
 
-  api-gateway:
-    build: ./infrastructure/api-gateway
-    container_name: api-gateway
-    depends_on:
-      - eureka-server
-    ports:
-      - "8080:8080"
-    restart: always
-    networks:
-      - uniadmit-network
-
-  ##########################################################
-  # AUTH SERVICE
-  ##########################################################
-
+  # ── Auth Service ─────────────────────────────────────────────────────────────
   auth-service:
-    build: ./services/auth-service
-    depends_on:
-      - auth-postgres
-      - rabbitmq
-      - eureka-server
+    build:
+      context: ./uni-admit-backend/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8081:8081"
     networks:
       - uniadmit-network
-
-  ##########################################################
-  # PROFILE SERVICE
-  ##########################################################
-
-  profile-service:
-    build: ./services/profile-service
     depends_on:
-      - profile-postgres
-      - eureka-server
+      auth-postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── Profile Service ───────────────────────────────────────────────────────────
+  profile-service:
+    build:
+      context: ./uni-admit-backend/profile-service
+      dockerfile: Dockerfile
+    container_name: profile-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8082:8082"
     networks:
       - uniadmit-network
-
-  ##########################################################
-  # ADMISSION SERVICE
-  ##########################################################
-
-  admission-service:
-    build: ./services/admission-service
     depends_on:
-      - admission-postgres
-      - rabbitmq
-      - eureka-server
+      profile-postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8082/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── Admission Service ─────────────────────────────────────────────────────────
+  admission-service:
+    build:
+      context: ./uni-admit-backend/admission-service
+      dockerfile: Dockerfile
+    container_name: admission-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8083:8083"
     networks:
       - uniadmit-network
-
-  ##########################################################
-  # DOCUMENT SERVICE
-  ##########################################################
-
-  document-service:
-    build: ./services/document-service
     depends_on:
-      - document-postgres
-      - minio
-      - eureka-server
+      admission-postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── Document Service ──────────────────────────────────────────────────────────
+  document-service:
+    build:
+      context: ./uni-admit-backend/document-service
+      dockerfile: Dockerfile
+    container_name: document-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8084:8084"
     networks:
       - uniadmit-network
-
-  ##########################################################
-  # PAYMENT SERVICE
-  ##########################################################
-
-  payment-service:
-    build: ./services/payment-service
     depends_on:
-      - payment-postgres
-      - rabbitmq
-      - eureka-server
-    ports:
-      - "8085:8085"
-    networks:
-      - uniadmit-network
+      document-postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8084/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
 
-  ##########################################################
-  # NOTIFICATION SERVICE
-  ##########################################################
-
+  # ── Notification Service ──────────────────────────────────────────────────────
   notification-service:
-    build: ./services/notification-service
-    depends_on:
-      - rabbitmq
-      - eureka-server
+    build:
+      context: ./uni-admit-backend/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8086:8086"
     networks:
       - uniadmit-network
-
-  ##########################################################
-  # ADMIN SERVICE
-  ##########################################################
-
-  admin-service:
-    build: ./services/admin-service
     depends_on:
-      - admin-postgres
-      - rabbitmq
-      - eureka-server
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8086/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── Admin Service ─────────────────────────────────────────────────────────────
+  admin-service:
+    build:
+      context: ./uni-admit-backend/admin-service
+      dockerfile: Dockerfile
+    container_name: admin-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8087:8087"
     networks:
       - uniadmit-network
-
-  ##########################################################
-  # PROMETHEUS
-  ##########################################################
-
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    restart: always
-    networks:
-      - uniadmit-network
-
-  ##########################################################
-  # GRAFANA
-  ##########################################################
-
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
-      - prometheus
-    restart: always
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8087/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── API Gateway ───────────────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./uni-admit-backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
     networks:
       - uniadmit-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10

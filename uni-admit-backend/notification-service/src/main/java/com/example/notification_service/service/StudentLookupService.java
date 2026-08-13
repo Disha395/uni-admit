@@ -17,7 +17,7 @@ public class StudentLookupService {
         // TODO: replace with actual Feign call to auth-service
         // return authClient.getUserEmail(studentId);
         log.warn("StudentLookupService: returning placeholder email for studentId: {}", studentId);
-        return "sample.demo395@gmail.com";   // placeholder for demo
+        return "dishanayak395@gmail.com";   // placeholder for demo
     }
 }
 

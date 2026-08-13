@@ -1,11 +1,15 @@
 version: '3.8'
 
-# ── Networks ───────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# NETWORKS
+# ─────────────────────────────────────────────────────────────────────────────
 networks:
   uniadmit-network:
     driver: bridge
 
-# ── Volumes (data persistence) ─────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# VOLUMES
+# ─────────────────────────────────────────────────────────────────────────────
 volumes:
   auth-postgres-data:
   profile-postgres-data:
@@ -16,13 +20,15 @@ volumes:
   prometheus-data:
   grafana-data:
 
+# ─────────────────────────────────────────────────────────────────────────────
+# SERVICES
+# ─────────────────────────────────────────────────────────────────────────────
 services:
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # INFRASTRUCTURE
-  # ════════════════════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DATABASES
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  # ── Auth Database ────────────────────────────────────────────────────────────
   auth-postgres:
     image: postgres:16-alpine
     container_name: auth-postgres
@@ -40,7 +46,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Profile Database ─────────────────────────────────────────────────────────
   profile-postgres:
     image: postgres:16-alpine
     container_name: profile-postgres
@@ -58,7 +63,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Admission Database ───────────────────────────────────────────────────────
   admission-postgres:
     image: postgres:16-alpine
     container_name: admission-postgres
@@ -76,7 +80,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Document Database ────────────────────────────────────────────────────────
   document-postgres:
     image: postgres:16-alpine
     container_name: document-postgres
@@ -94,7 +97,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── RabbitMQ ─────────────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # RABBITMQ
+  # ═══════════════════════════════════════════════════════════════════════════
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq
@@ -114,7 +120,10 @@ services:
       timeout: 10s
       retries: 5
 
-  # ── MinIO ────────────────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MINIO
+  # ═══════════════════════════════════════════════════════════════════════════
+
   minio:
     image: minio/minio
     container_name: minio
@@ -135,7 +144,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Prometheus ───────────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MONITORING
+  # ═══════════════════════════════════════════════════════════════════════════
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -150,7 +162,6 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
 
-  # ── Grafana ──────────────────────────────────────────────────────────────────
   grafana:
     image: grafana/grafana
     container_name: grafana
@@ -167,15 +178,16 @@ services:
     depends_on:
       - prometheus
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # SPRING CLOUD CORE
-  # ════════════════════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EUREKA SERVER
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  # ── Eureka Server ────────────────────────────────────────────────────────────
   eureka-server:
     build:
-      context: ./uni-admit-backend/eurekaserver
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: eurekaserver/Dockerfile
+      args:
+        SERVICE_NAME: eurekaserver
     container_name: eureka-server
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -189,15 +201,16 @@ services:
       timeout: 10s
       retries: 10
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # MICROSERVICES
-  # ════════════════════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # AUTH SERVICE
+  # ═══════════════════════════════════════════════════════════════════════════
 
-  # ── Auth Service ─────────────────────────────────────────────────────────────
   auth-service:
     build:
-      context: ./uni-admit-backend/auth-service
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: auth-service/Dockerfile
+      args:
+        SERVICE_NAME: auth-service
     container_name: auth-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -218,11 +231,16 @@ services:
       timeout: 10s
       retries: 10
 
-  # ── Profile Service ───────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PROFILE SERVICE
+  # ═══════════════════════════════════════════════════════════════════════════
+
   profile-service:
     build:
-      context: ./uni-admit-backend/profile-service
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: profile-service/Dockerfile
+      args:
+        SERVICE_NAME: profile-service
     container_name: profile-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -241,11 +259,16 @@ services:
       timeout: 10s
       retries: 10
 
-  # ── Admission Service ─────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ADMISSION SERVICE
+  # ═══════════════════════════════════════════════════════════════════════════
+
   admission-service:
     build:
-      context: ./uni-admit-backend/admission-service
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: admission-service/Dockerfile
+      args:
+        SERVICE_NAME: admission-service
     container_name: admission-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -266,11 +289,16 @@ services:
       timeout: 10s
       retries: 10
 
-  # ── Document Service ──────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DOCUMENT SERVICE
+  # ═══════════════════════════════════════════════════════════════════════════
+
   document-service:
     build:
-      context: ./uni-admit-backend/document-service
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: document-service/Dockerfile
+      args:
+        SERVICE_NAME: document-service
     container_name: document-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -291,11 +319,16 @@ services:
       timeout: 10s
       retries: 10
 
-  # ── Notification Service ──────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NOTIFICATION SERVICE
+  # ═══════════════════════════════════════════════════════════════════════════
+
   notification-service:
     build:
-      context: ./uni-admit-backend/notification-service
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: notification-service/Dockerfile
+      args:
+        SERVICE_NAME: notification-service
     container_name: notification-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -314,11 +347,16 @@ services:
       timeout: 10s
       retries: 10
 
-  # ── Admin Service ─────────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ADMIN SERVICE
+  # ═══════════════════════════════════════════════════════════════════════════
+
   admin-service:
     build:
-      context: ./uni-admit-backend/admin-service
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: admin-service/Dockerfile
+      args:
+        SERVICE_NAME: admin-service
     container_name: admin-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -335,11 +373,16 @@ services:
       timeout: 10s
       retries: 10
 
-  # ── API Gateway ───────────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # API GATEWAY
+  # ═══════════════════════════════════════════════════════════════════════════
+
   api-gateway:
     build:
-      context: ./uni-admit-backend/api-gateway
-      dockerfile: Dockerfile
+      context: ./uni-admit-backend
+      dockerfile: api-gateway/Dockerfile
+      args:
+        SERVICE_NAME: api-gateway
     container_name: api-gateway
     environment:
       SPRING_PROFILES_ACTIVE: docker

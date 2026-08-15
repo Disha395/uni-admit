@@ -8,6 +8,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -29,15 +30,20 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             "/auth/register",
             "/auth/login",
             "/auth/refresh",
+            "/auth/logout",
             "/actuator"
     );
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
 
-        // Skip JWT validation for public paths
+        // Skip JWT for OPTIONS preflight — browser sends this before every request
+        if (HttpMethod.OPTIONS.equals(request.getMethod())) {
+            return chain.filter(exchange);
+        }
+
+        // Skip JWT for public paths
         if (isPublicPath(path)) {
             return chain.filter(exchange);
         }

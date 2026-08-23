@@ -60,5 +60,9 @@ export default function (data) {
     'response has data': (r) => r.body.length > 0,
   });
 
+  if (res.status !== 200 && Math.random() < 0.01) {
+    console.log(`FAILED STATUS: ${res.status} | BODY: ${res.body}`);
+  }
+
   sleep(1);
 }

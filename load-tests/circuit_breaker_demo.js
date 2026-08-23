@@ -29,31 +29,53 @@ export function setup() {
   return { token: loginRes.json('accessToken') };
 }
 
+//export default function (data) {
+//  const headers = {
+//    'Content-Type': 'application/json',
+//    'Authorization': `Bearer ${data.token}`,
+//  };
+//
+//  const res = http.post(
+//    `${BASE_URL}/application`,
+//    JSON.stringify({
+//      profileId: '9078a21a-55fc-4c46-853c-cd481e833ed1',
+//      courseName: 'Computer Science',
+//      university: 'MIT',
+//      intakeYear: 2026
+//    }),
+//    { headers }
+//  );
+//
+//  // Log the status so you can see when CB opens (202 → 503)
+//  console.log(`Status: ${res.status} | Body: ${res.body.substring(0, 100)}`);
+//
+//  check(res, {
+//    '202 Accepted (normal)':       (r) => r.status === 202,
+//    '409 Conflict (duplicate)':    (r) => r.status === 409,
+//    '503 CB Fallback (CB open)':   (r) => r.status === 503,
+//  });
+//
+//  sleep(2);
+//}
+
 export default function (data) {
   const headers = {
-    'Content-Type': 'application/json',
     'Authorization': `Bearer ${data.token}`,
+    'Content-Type': 'application/json',
   };
 
-  const res = http.post(
-    `${BASE_URL}/application`,
-    JSON.stringify({
-      profileId: '9078a21a-55fc-4c46-853c-cd481e833ed1',
-      courseName: 'Computer Science',
-      university: 'MIT',
-      intakeYear: 2026
-    }),
-    { headers }
-  );
+  const res = http.get(`${BASE_URL}/application/my`, { headers });
 
-  // Log the status so you can see when CB opens (202 → 503)
-  console.log(`Status: ${res.status} | Body: ${res.body.substring(0, 100)}`);
+  // Log non-200 responses
+  if (res.status !== 200) {
+    console.log(`Failed: ${res.status} - ${res.body.substring(0, 100)}`);
+  }
 
   check(res, {
-    '202 Accepted (normal)':       (r) => r.status === 202,
-    '409 Conflict (duplicate)':    (r) => r.status === 409,
-    '503 CB Fallback (CB open)':   (r) => r.status === 503,
+    'status is 200': (r) => r.status === 200,
+    'response has data': (r) => r.body.length > 0,
   });
 
-  sleep(2);
+  sleep(1);
 }
+

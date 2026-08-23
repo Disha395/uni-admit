@@ -10,15 +10,10 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
-  cloud:
-    openfeign:
-      client:
-        config:
-          default:
-            connect-timeout: 5000
-            read-timeout: 10000
-      circuitbreaker:
-        enabled: true
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
 
   jpa:
     hibernate:
@@ -64,8 +59,8 @@ resilience4j:
   bulkhead:
     instances:
       admissionSubmit:
-        max-concurrent-calls: 20
-        max-wait-duration: 0
+        max-concurrent-calls: 200
+        max-wait-duration: 2000ms
   retry:
     instances:
       profileService:

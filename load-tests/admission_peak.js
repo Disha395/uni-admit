@@ -8,16 +8,20 @@ import { check, sleep } from 'k6';
 const BASE_URL = 'http://localhost:8080';
 
 export const options = {
+  setupTimeout: '120s',   // add this line
   stages: [
-    { duration: '30s', target: 100 },   // ramp up to 100 users
-    { duration: '1m',  target: 300 },   // ramp up to 300 users
-    { duration: '1m',  target: 500 },   // ramp up to 500 users (peak)
-    { duration: '30s', target: 500 },   // hold peak
-    { duration: '30s', target: 0   },   // ramp down
+    { duration: '30s', target: 100  },
+    { duration: '1m',  target: 300  },
+    { duration: '1m',  target: 700  },
+    { duration: '1m',  target: 1000 },
+    { duration: '1m',  target: 1500 },
+    { duration: '1m',  target: 2000 },
+    { duration: '30s', target: 2000 },
+    { duration: '30s', target: 0    },
   ],
   thresholds: {
-    http_req_duration: ['p(95)<3000'],  // 95% of requests under 3s
-    http_req_failed:   ['rate<0.05'],   // less than 5% error rate
+    http_req_duration: ['p(95)<3000'],
+    http_req_failed:   ['rate<0.05'],
   },
 };
 
@@ -60,9 +64,13 @@ export default function (data) {
     'response has data': (r) => r.body.length > 0,
   });
 
-  if (res.status !== 200 && Math.random() < 0.01) {
-    console.log(`FAILED STATUS: ${res.status} | BODY: ${res.body}`);
-  }
+//  if (res.status !== 200 && Math.random() < 0.01) {
+//    console.log(`FAILED STATUS: ${res.status} | BODY: ${res.body}`);
+//  }
 
-  sleep(1);
+if (res.status !== 200) {
+    console.log(`FAILED STATUS: ${res.status} | BODY: ${res.body.substring(0, 200)}`);
+}
+
+  sleep(0.5);
 }

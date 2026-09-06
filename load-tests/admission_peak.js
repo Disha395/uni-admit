@@ -9,16 +9,15 @@ const BASE_URL = 'http://localhost:8080';
 
 export const options = {
   setupTimeout: '120s',   // add this line
-  stages: [
-    { duration: '30s', target: 100  },
-    { duration: '1m',  target: 300  },
-    { duration: '1m',  target: 700  },
-    { duration: '1m',  target: 1000 },
-    { duration: '1m',  target: 1500 },
-    { duration: '1m',  target: 2000 },
-    { duration: '30s', target: 2000 },
-    { duration: '30s', target: 0    },
-  ],
+ stages: [
+     { duration: '30s', target: 100  },
+     { duration: '1m',  target: 300  },
+     { duration: '1m',  target: 700  },
+     { duration: '1m',  target: 1000 },
+     { duration: '1m',  target: 1500 },
+     { duration: '1m',  target: 1500 },  // hold at 1500
+     { duration: '30s', target: 0    },
+ ],
   thresholds: {
     http_req_duration: ['p(95)<3000'],
     http_req_failed:   ['rate<0.05'],

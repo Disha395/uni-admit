@@ -1,4 +1,3 @@
-version: '3.8'
 
 # ─────────────────────────────────────────────────────────────────────────────
 # NETWORKS
@@ -274,14 +273,10 @@ services:
   admission-service:
     build:
       context: ./uni-admit-backend
-      dockerfile: admission-service/Dockerfile
-      args:
-        SERVICE_NAME: admission-service
-    container_name: admission-service
+      dockerfile: Dockerfile
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8083:8083"
+    # Remove the ports section — Gateway uses internal Docker network
     networks:
       - uniadmit-network
     depends_on:

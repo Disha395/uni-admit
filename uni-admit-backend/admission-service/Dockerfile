@@ -1,23 +1,52 @@
+# ─────────────────────────────────────────────────────────────
+# Stage 1: Build
+# ─────────────────────────────────────────────────────────────
 FROM eclipse-temurin:21-jdk-alpine AS builder
+
 WORKDIR /app
 
-# Copy BOM first
+ARG SERVICE_NAME
+
+# Copy Maven wrapper from the selected service
+COPY ${SERVICE_NAME}/mvnw ./mvnw
+COPY ${SERVICE_NAME}/.mvn ./.mvn
+
+# Copy the custom parent BOM
 COPY uni-admit-bom ./uni-admit-bom
 
-# Copy service
-COPY admission-service/mvnw ./mvnw
-COPY admission-service/.mvn ./.mvn
-COPY admission-service/pom.xml ./admission-service/pom.xml
-COPY admission-service/src ./admission-service/src
+# Copy service POM
+COPY ${SERVICE_NAME}/pom.xml ./${SERVICE_NAME}/pom.xml
 
+# Copy service source
+COPY ${SERVICE_NAME}/src ./${SERVICE_NAME}/src
+
+# Make Maven wrapper executable
 RUN chmod +x ./mvnw
-RUN ./mvnw -f admission-service/pom.xml dependency:go-offline -B 2>/dev/null || true
-RUN ./mvnw -f admission-service/pom.xml package -DskipTests -B
 
+# Download dependencies
+RUN ./mvnw -f ${SERVICE_NAME}/pom.xml dependency:go-offline -B 2>/dev/null || true
+
+# Build service
+RUN ./mvnw -f ${SERVICE_NAME}/pom.xml package -DskipTests -B
+
+
+# ─────────────────────────────────────────────────────────────
+# Stage 2: Runtime
+# ─────────────────────────────────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine
+
+# Non-root user
 RUN addgroup -S appgrp && adduser -S appuser -G appgrp
+
 USER appuser
+
 WORKDIR /app
-COPY --from=builder /app/admission-service/target/*.jar app.jar
-EXPOSE 8083
+
+ARG SERVICE_NAME
+
+# Copy generated JAR
+COPY --from=builder /app/${SERVICE_NAME}/target/*.jar app.jar
+
+EXPOSE 8080
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

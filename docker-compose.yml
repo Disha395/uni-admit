@@ -132,25 +132,25 @@ services:
   # ═══════════════════════════════════════════════════════════════════════════
 
   minio:
-    image: minio/minio
+    image: chrislusf/seaweedfs
     container_name: minio
-    command: server /data --console-address ":9001"
+    command: server -s3 -s3.config=/etc/seaweedfs/s3.json
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
     volumes:
       - minio-data:/data
+      - ./seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:8333"
     networks:
       - uniadmit-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "--fail", "http://localhost:8333/status" ]
       interval: 15s
       timeout: 5s
       retries: 5
-
+      start_period: 20s
   # ═══════════════════════════════════════════════════════════════════════════
   # MONITORING
   # ═══════════════════════════════════════════════════════════════════════════
@@ -273,7 +273,7 @@ services:
   admission-service:
     build:
       context: ./uni-admit-backend
-      dockerfile: Dockerfile
+      dockerfile: admission-service/Dockerfile
       args:
         SERVICE_NAME: admission-service
     container_name: admission-service
@@ -309,6 +309,9 @@ services:
     container_name: document-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      MINIO_ENDPOINT: http://minio:8333
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
     ports:
       - "8084:8084"
     networks:

@@ -10,7 +10,7 @@ import java.util.Map;
 
 //@FeignClient(name = "admission-service", fallback = AdmissionClientFallback.class)
 @FeignClient(name = "admission-service",
-        url = "http://localhost:8083",
+        url = "http://admission-service:8083",
         configuration = FeignConfig.class,
         fallback = AdmissionClientFallback.class)
 public interface AdmissionClient {

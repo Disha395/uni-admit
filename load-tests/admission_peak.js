@@ -16,8 +16,7 @@ export const options = {
         { duration: '1m',  target: 700 },
         { duration: '1m',  target: 1000 },
         { duration: '1m',  target: 1500 },
-        { duration: '1m',  target: 2000 },
-        { duration: '1m',  target: 2000 },  // hold at 2,000
+        { duration: '1m',  target: 1500 },  // hold at 2,000
         { duration: '30s', target: 0 },
     ],
 
